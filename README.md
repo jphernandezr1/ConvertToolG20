@@ -3,7 +3,7 @@ Online Converting Tool
 
 En este repositorio se encuentra la aplicación en flask de conversion
 
-Grupo-20:
+# Grupo-20:
 
 Juan Pablo Hernandez
 
@@ -14,7 +14,8 @@ Kevin Castrillon
 Juan Felipe Castaño
 
 
-Base de datos
+
+# Base de datos:
 
 tipo: postgres
 
@@ -27,3 +28,5 @@ nombre: cloud-converter-tool
 ip: 34.170.195.29
 
 // dynamic-vehicle-383500:us-central1:cloud-tool
+
+# Maquina virtual:
