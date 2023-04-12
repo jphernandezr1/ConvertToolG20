@@ -20,6 +20,7 @@ cors = CORS(app)
 api = Api(app)
 api.add_resource(TasksView, '/api/tasks')
 api.add_resource(TaskView, '/api/tasks/<int:id_task>')
+
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
