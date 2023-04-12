@@ -1,4 +1,4 @@
-from models.models import db, Task, TaskSchema
+from models.models import Task, TaskSchema, db
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, create_access_token
 from flask import request

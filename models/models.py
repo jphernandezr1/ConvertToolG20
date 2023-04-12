@@ -1,8 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields, Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from app import db
 
+db = SQLAlchemy()
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key= True)

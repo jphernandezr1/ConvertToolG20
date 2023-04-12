@@ -3,11 +3,17 @@ from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from views.views import TaskView, TasksView
+from views.views import TaskView, TasksView, db
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://cloud-user:cloud-user@34.170.195.29:5432/cloud-converter-tool'
-db = SQLAlchemy(app)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app_context = app.app_context()
+app_context.push()
+
+db.init_app(app)
+db.create_all()
 
 cors = CORS(app)
 
