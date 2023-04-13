@@ -17,6 +17,7 @@ class File(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     nombre_archivo = db.Column(db.String(128))
     ruta = db.Column(db.String(128))
+
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(50))
@@ -25,8 +26,6 @@ class Usuario(db.Model):
     email = db.Column(db.String(128))
     tasks = db.relationship('Task', cascade='all, delete, delete-orphan')
     files = db.relationship('File', cascade='all, delete, delete-orphan')
-
-
 
 class TaskSchema(SQLAlchemyAutoSchema):
     class Meta:
