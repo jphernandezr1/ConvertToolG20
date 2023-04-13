@@ -33,11 +33,13 @@ class TaskView(Resource):
         db.session.delete(task)
         db.session.commit()
         return '', 204
+    
 class TasksView(Resource):
+    print("entro")
     @jwt_required()
     def get(self):
         tasks = Task.query.all()
-        return [task_schema.dump(task) for task in tasks]
+        return self.response, 200
 
     
     @jwt_required()
