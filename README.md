@@ -29,4 +29,8 @@ ip: 34.170.195.29
 
 // dynamic-vehicle-383500:us-central1:cloud-tool
 
+puerto: 5432
+
 # Maquina virtual:
+
+IP EXTERNA MÁQUINA VIRTUAL 34.72.252.51
