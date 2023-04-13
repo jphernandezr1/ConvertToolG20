@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required
 import os
 from flask import Flask, flash, request, redirect, url_for
 from werkzeug.utils import secure_filename
-import app
+# import app
 
 UPLOAD_FOLDER = '../uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
