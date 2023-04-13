@@ -1,11 +1,6 @@
-def convert_audio(file, format):
+# import zipfile
+# import py7zr
+# import tarfile
+def compress_file(file, format):
     pass
 
-def convert_video(file, format):
-    pass
-
-def convert_image(file, format):
-    pass
-
-def convert_document(file):
-    pass
