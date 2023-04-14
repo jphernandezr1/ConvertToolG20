@@ -1,23 +1,42 @@
-from celery import app
-from datetime import datetime
-from models.models import db, Task
+from app import db
+from models.models import Task, User
+from celery import Celery
+from pydub import AudioSegment
+import os
+from email.message import EmailMessage
+import smtplib
+from celery.signals import task_postrun
 
-@app.task
-def convert_file(task_id):
-    task = Task.query.get(task_id)
-    # TODO: Convertir el archivo al formato deseado
-    converted_file = ""
-    # TODO: Guardar el archivo convertido al sistema de archivos
-    storage = ""
-    # Actualizar el estatus a procesado y guardarlo en la db
-    task.status = "processed"
-    task.file_name = storage
-    task.time_stamp = datetime.now()
+celery_app = Celery("tasks", broker='redis://localhost:6379/0')
+
+@celery_app.task(name='file.conversion')
+def process_file(fileName, newFormat, newTask_id, user_id):
+    ## Convert an audio file to a different format
+    ## @param fileName: The name of the file to convert
+    ## @param newFormat: The format to convert the file to
+    ## @return: The name of the converted file
+    sound = AudioSegment.from_file("./data/uploaded/"+fileName)
+    fileNoExtension = os.path.splitext(fileName)
+    sound.export("./data/processed/"+fileNoExtension[0]+".wav", format=newFormat)
+    task = Task.query.filter(Task.id == newTask_id).first()
+    task.status = "PROCESSED"
     db.session.commit()
-
-@app.task
-def process_files():
-    tasks = Task.query.filter_by(status='uploaded').all()
-    for task in tasks:
-        convert_file.delay(task.id)
+    ## Send email to user
+    user = User.query.filter(User.id == user_id).first()
+    db.session.commit()
+    remitente = "pruebasoftwarenube@hotmail.com"
+    destinatario = user.email
+    mensaje = "Archivo convertido exitosamente"
+    email = EmailMessage()
+    email["From"] = remitente
+    email["To"] = destinatario
+    email["Subject"] = "Se ha procesado su archivo"
+    email.set_content(mensaje)
+    smtp = smtplib.SMTP("smtp-mail.outlook.com", port=587)
+    smtp.starttls()
+    smtp.login(remitente, "Software589$")
+    smtp.sendmail(remitente, destinatario, email.as_string())
+    smtp.quit()
+    db.session.remove()
+    return "Archivo convertido exitosamente"
 
