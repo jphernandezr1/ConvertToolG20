@@ -1,31 +1,27 @@
 from flask_sqlalchemy import SQLAlchemy
-from marshmallow import fields, Schema
+from marshmallow import fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+import enum
 
 db = SQLAlchemy()
 
+class EnumADiccionario(fields.Field):
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        return {"llave": value.name, "valor": value.value}
+
+class Status(enum.Enum):
+    UPLOADED = 1
+    PROCESSED = 2
+
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
-    file_name = db.Column(db.String(128))
-    new_format = db.Column(db.String(128))
-    time_stamp = db.Column(db.DateTime, default=db.func.current_timestamp())
-    status = db.Column(db.String(128), default="uploaded")
-
-class File(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
-    nombre_archivo = db.Column(db.String(128))
-    ruta = db.Column(db.String(128))
-
-class Usuario(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(50))
-    password1 = db.Column(db.String(50))
-    password2 = db.Column(db.String(50))
-    email = db.Column(db.String(128))
-    tasks = db.relationship('Task', cascade='all, delete, delete-orphan')
-    files = db.relationship('File', cascade='all, delete, delete-orphan')
+    fileName = db.Column(db.String(50))
+    newFormat = db.Column(db.String(50))
+    timeStamp = db.Column(db.DateTime)
+    status = db.Column(db.Enum(Status))
+    user = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class TaskSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -33,37 +29,20 @@ class TaskSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
-    id = fields.String()
-    file_name = fields.String()
-    new_format = fields.String()
-    time_stamp = fields.DateTime(dump_only=True)
-    status = fields.String()
+    fileName = fields.String()
+    newFormat = fields.String()
+    timeStamp = fields.DateTime()
+    status = EnumADiccionario(attribute=("status"))
 
-class FileSchema(SQLAlchemyAutoSchema):
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50))
+    email = db.Column(db.String(50))
+    password = db.Column(db.String(50))
+    tasks = db.relationship('Task', cascade='all, delete, delete-orphan')
+  
+class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
-        model = File
+        model = User
         include_relationships = True
         load_instance = True
-
-    id = fields.String()
-    nombre_archivo = fields.String()
-    ruta = fields.String()
-
-
-class UsuarioSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = Usuario
-        include_relationships = True
-        load_instance = True
-    id = fields.String()
-    username = fields.String()
-    password1 = fields.String(load_only=True)
-    password2 = fields.String(load_only=True)
-    email = fields.String()
-    tasks = fields.Nested(TaskSchema, many=True)
-    files = fields.Nested(FileSchema, many=True)
-
-
-
-
-
