@@ -33,34 +33,20 @@ class TaskView(Resource):
         db.session.delete(task)
         db.session.commit()
         return '', 204
-    
 class TasksView(Resource):
-    print("entro")
-    @jwt_required()
+
     def get(self):
         tasks = Task.query.all()
-        return self.response, 200
+        return [task_schema.dump(task) for task in tasks]
 
-    
-    @jwt_required()
     def post(self):
-        file_name = request.files['file_name']
-        new_format = request.form['new_format']
-        time_stamp = datetime.now()
-        status = 'uploaded'
-
         file = request.files['file']
         if file.filename == '':
             flash('No selected file')
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(UPLOAD_FOLDER, filename))
-            return redirect(url_for('download_file', name=filename))
-        task = Task(file_name, new_format=new_format, time_stamp=time_stamp, status='processed')
-        db.session.add(task)
-        db.session.commit()
-
-        return {'message': 'Se creó la tarea exitosamente.'}, 201
+            return {'message': 'Se creó la tarea exitosamente.'}, 201
     
 def allowed_file(filename):
     return '.' in filename and \
