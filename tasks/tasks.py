@@ -1,4 +1,4 @@
-from app import db
+from models import db
 from models.models import Task, User
 from celery import Celery
 from pydub import AudioSegment
