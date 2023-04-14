@@ -179,7 +179,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{Token}}",
+							"value": "{{token}}",
 							"type": "string"
 						}
 					]
@@ -280,7 +280,7 @@
 						{
 							"key": "fileName",
 							"type": "file",
-							"src": "/C:/Users/fesar/Music/pocophonef1/Evangelion. Opening 1. _ Traducido Al Español. _ Zankoku na Tenshi no Thesis(MP3_70K).mp3"
+							"src": "/C:/Users/cas_t/OneDrive/Documentos/Cloud/Proyecto cloud/2.mp3"
 						},
 						{
 							"key": "newFormat",
@@ -699,8 +699,8 @@
 			"type": "string"
 		},
 		{
-			"key": "Token",
-			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY4MTQzOTIyMywianRpIjoiMWRjMDdlNmItZDAzYS00MDg3LWI5NWQtYzI5YTJhNTYxZmMzIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNjgxNDM5MjIzLCJleHAiOjE2ODE0NDAxMjN9.3rW4a3oaHE740SU2VGS5ra5YzXfkWxlZU8eoR_Kag1c"
+			"key": "{{token}}",
+			"value": ""
 		}
 	]
 }
