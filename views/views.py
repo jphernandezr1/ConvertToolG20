@@ -1,6 +1,3 @@
-from cmath import log
-from fileinput import filename
-from operator import truediv
 from flask import request, send_from_directory, abort
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from flask_restful import Resource
@@ -11,7 +8,6 @@ from datetime import datetime
 from models import db, User, UserSchema, Task
 from tasks import tasks
 from models.models import Status, TaskSchema
-from pydub import AudioSegment
 from celery import Celery
 
 user_schema = UserSchema()
@@ -127,7 +123,7 @@ class ViewTask(Resource):
                 db.session.add(new_task)
                 db.session.commit()
                 tasks.process_file.delay(filename, newFormat, new_task.id, user.id)
-                return {"mensaje": "Tarea creada exitosamente.", "id": new_task.id}
+                return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
 
             else:
                 return "El archivo no cumple con los formatos permitidos.", 412 
@@ -171,9 +167,9 @@ class ViewTask(Resource):
             return {"mensaje": "Tarea modificada exitosamente", "tarea": task_schema.dump(task)}
 
 class ViewFile(Resource):
-    def get(self, filename):
+    def get(self, id):
         try:
-            task = Task.query.filter(Task.fileName.startswith(filename)).first()
+            task = Task.query.filter(Task.id==id)
             db.session.commit()
             if task is None:
                 return "El archivo no existe.", 404
@@ -183,6 +179,7 @@ class ViewFile(Resource):
                 if tipo == "original":
                     return send_from_directory('./data/uploaded', filename = task.fileName, as_attachment = True)
                 if tipo == "procesado":
+                    filename= (task.fileName).split(".")[0]
                     return send_from_directory('./data/processed', filename = filename + "." + task.newFormat, as_attachment = True)
                 else:
                     return "El tipo debe ser 'original' o 'procesado'.", 412
