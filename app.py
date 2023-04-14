@@ -21,6 +21,10 @@ db.create_all()
 
 cors = CORS(app)
 
+@app.route('/')
+def hello():
+    return 'Hello, World!'
+
 api = Api(app)
 api.add_resource(ViewSignUp, '/auth/signup')
 api.add_resource(ViewLogIn, '/auth/login')
