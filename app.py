@@ -29,9 +29,10 @@ def hello():
     return 'Hello, World!'
 
 api = Api(app)
-api.add_resource(ViewSignUp, '/auth/signup')
-api.add_resource(ViewLogIn, '/auth/login')
-api.add_resource(ViewTask, '/tasks','/tasks/<int:id_task>', '/tasks/<int:order>/<int:max>')
-api.add_resource(ViewFile, '/files/<filename>')
+with app.app_context():
+    api.add_resource(ViewSignUp, '/auth/signup')
+    api.add_resource(ViewLogIn, '/auth/login')
+    api.add_resource(ViewTask, '/tasks','/tasks/<int:id_task>', '/tasks/<int:order>/<int:max>')
+    api.add_resource(ViewFile, '/files/<filename>')
 
 jwt = JWTManager(app)
