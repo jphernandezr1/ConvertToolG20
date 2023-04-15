@@ -120,6 +120,8 @@ class ViewTask(Resource):
                 user.tasks.append(new_task)
                 db.session.add(new_task)
                 db.session.commit()
+                with self.app.app_context():
+                  task=Task.query.filer(Task.id==new_task.id).first()
                 tasks.process_file.delay(filename, newFormat, new_task.id, user.id)
                 return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
 

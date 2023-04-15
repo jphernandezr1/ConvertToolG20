@@ -9,8 +9,8 @@ from models import db
 from views import ViewSignUp, ViewLogIn, ViewTask, ViewFile
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:postgres@localhost:5432/postgres"
-##app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:postgres@34.170.217.192:5432/cloud-converter-tool"
+##app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:postgres@localhost:5432/postgres"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:postgres@34.170.217.192:5432/cloud-converter-tool"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'frase-secreta'
 app.config['PROPAGATE_EXCEPTIONS'] = True
