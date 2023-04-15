@@ -19,7 +19,7 @@ def process_file(fileName, newFormat, newTask_id, user_id):
     sound = AudioSegment.from_file("./data/uploaded/"+fileName)
     if sound:
         fileNoExtension = fileName.split(".")[0]
-        sound.export("./data/processed/"+fileNoExtension[0]+".wav", format=newFormat)
+        sound.export("./data/processed/"+fileNoExtension+".wav", format=newFormat)
         task = Task.query.filter(Task.id == newTask_id).first()
         task.status = "PROCESSED"
         db.session.commit()
