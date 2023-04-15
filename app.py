@@ -16,8 +16,8 @@ app.config['JWT_SECRET_KEY'] = 'frase-secreta'
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['UPLOAD_FOLDER'] = "./data/uploaded"
 
-with app.app_context():
-    task=Task.query.filer(Task.id==new_task.id).first()
+app_context = app.app_context()
+app_context.push()
 
 db.init_app(app)
 db.create_all()
