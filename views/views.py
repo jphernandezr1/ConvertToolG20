@@ -109,6 +109,19 @@ class ViewTask(Resource):
         user_id = get_jwt_identity()
         user =  User.query.get_or_404(user_id)
         print(user.username)
+        if user:
+            file = request.files['file']
+            filename = secure_filename(file.filename)
+            newFormat = request.values["newFormat"]
+            
+            if allowed_file(filename) and allowed_file(newFormat):
+                file.save(os.path.join('./data/uploaded',filename))
+                new_task = Task(fileName = filename, newFormat = newFormat, timeStamp = datetime.now(), status = "UPLOADED")
+                user.tasks.append(new_task)
+                db.session.add(new_task)
+                db.session.commit()
+                tasks.process_file.delay(filename, newFormat, new_task.id, user.id)
+                return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
         with current_app.app_context():
             if user:
                 file = request.files['file']
