@@ -7,7 +7,7 @@ from email.message import EmailMessage
 import smtplib
 from celery.signals import task_postrun
 
-celery_app = Celery("tasks", broker='redis://localhost:6379/0')
+celery_app = Celery("tasks", broker='redis://localhost:6377/0')
 
 @celery_app.task(name='file.conversion')
 def process_file(fileName, newFormat, newTask_id, user_id):
