@@ -16,27 +16,30 @@ def process_file(fileName, newFormat, newTask_id, user_id):
     ## @param newFormat: The format to convert the file to
     ## @return: The name of the converted file
     sound = AudioSegment.from_file("./data/uploaded/"+fileName)
-    fileNoExtension = os.path.splitext(fileName)
-    sound.export("./data/processed/"+fileNoExtension[0]+".wav", format=newFormat)
-    task = Task.query.filter(Task.id == newTask_id).first()
-    task.status = "PROCESSED"
-    db.session.commit()
-    ## Send email to user
-    user = User.query.filter(User.id == user_id).first()
-    db.session.commit()
-    remitente = "pruebasoftwarenube@hotmail.com"
-    destinatario = user.email
-    mensaje = "Archivo convertido exitosamente"
-    email = EmailMessage()
-    email["From"] = remitente
-    email["To"] = destinatario
-    email["Subject"] = "Se ha procesado su archivo"
-    email.set_content(mensaje)
-    smtp = smtplib.SMTP("smtp-mail.outlook.com", port=587)
-    smtp.starttls()
-    smtp.login(remitente, "Software589$")
-    smtp.sendmail(remitente, destinatario, email.as_string())
-    smtp.quit()
-    db.session.remove()
-    return "Archivo convertido exitosamente"
+    if sound:
+        fileNoExtension = os.path.splitext(fileName)
+        sound.export("./data/processed/"+fileNoExtension[0]+".wav", format=newFormat)
+        task = Task.query.filter(Task.id == newTask_id).first()
+        task.status = "PROCESSED"
+        db.session.commit()
+        ## Send email to user
+        user = User.query.filter(User.id == user_id).first()
+        db.session.commit()
+        remitente = "pruebasoftwarenube@hotmail.com"
+        destinatario = user.email
+        mensaje = "Archivo convertido exitosamente"
+        email = EmailMessage()
+        email["From"] = remitente
+        email["To"] = destinatario
+        email["Subject"] = "Se ha procesado su archivo"
+        email.set_content(mensaje)
+        smtp = smtplib.SMTP("smtp-mail.outlook.com", port=587)
+        smtp.starttls()
+        smtp.login(remitente, "Software589$")
+        smtp.sendmail(remitente, destinatario, email.as_string())
+        smtp.quit()
+        db.session.remove()
+        return "Archivo convertido exitosamente"
+    else:
+        return "no se encontro el archivo"
 

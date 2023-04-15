@@ -8,12 +8,10 @@ from datetime import datetime
 from models import db, User, UserSchema, Task
 from tasks import tasks
 from models.models import Status, TaskSchema
-from celery import Celery
 
 user_schema = UserSchema()
 task_schema = TaskSchema()
 
-celery_app = Celery(__name__, broker='redis://localhost:6379/0')
 
 ALLOWED_EXTENSIONS_AUDIO = set(['mp3', 'acc', 'ogg', 'wav', 'wma'])
 
@@ -112,7 +110,7 @@ class ViewTask(Resource):
         user =  User.query.get_or_404(user_id)
         print(user.username)
         if user:
-            file = request.files['fileName']
+            file = request.files['file']
             filename = secure_filename(file.filename)
             newFormat = request.values["newFormat"]
             
