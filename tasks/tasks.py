@@ -15,7 +15,6 @@ def process_file(fileName, newFormat, newTask_id, user_id):
     ## @param fileName: The name of the file to convert
     ## @param newFormat: The format to convert the file to
     ## @return: The name of the converted file
-    print(fileName)
     sound = AudioSegment.from_file("./data/uploaded/"+fileName)
     if sound:
         fileNoExtension = fileName.split(".")[0]
