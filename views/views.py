@@ -1,4 +1,4 @@
-from flask import request, send_from_directory, abort, current_app
+from flask import request, send_from_directory, abort
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from flask_restful import Resource
 from werkzeug.utils import secure_filename
@@ -13,7 +13,7 @@ user_schema = UserSchema()
 task_schema = TaskSchema()
 
 
-ALLOWED_EXTENSIONS_AUDIO = set(['mp3', 'acc', 'ogg', 'wav', 'wma'])
+ALLOWED_COMPRESSED = set(['ZIP', '7Z', 'TAR.GZ', 'TAR.BZ2'])
 
 class ViewSignUp(Resource):
 
@@ -113,14 +113,13 @@ class ViewTask(Resource):
             file = request.files['file']
             filename = secure_filename(file.filename)
             newFormat = request.values["newFormat"]
-            
-            if allowed_file(filename) and allowed_file(newFormat):
-                file.save(os.path.join('./data/uploaded',filename))
+            if newFormat in ALLOWED_COMPRESSED:
                 new_task = Task(fileName = filename, newFormat = newFormat, timeStamp = datetime.now(), status = "UPLOADED")
                 user.tasks.append(new_task)
                 db.session.add(new_task)
                 db.session.commit()
-                tasks.process_file.delay(filename, newFormat, new_task.id, user.id)
+                file.save(os.path.join('./data/uploaded',f'{new_task.id}.{filename.split(".")[-1]}'))
+                tasks.process_file.delay(filename, newFormat, new_task.id)
                 return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
 
             else:
@@ -151,7 +150,7 @@ class ViewTask(Resource):
         if task is None:
             return "La tarea no existe.", 404
         else:
-            if not allowed_file(request.json["newFormat"]):
+            if not request.json["newFormat"] in ALLOWED_COMPRESSED:
                 return "El formato no es válido.", 412
             print(task.status)
             if task.status == Status.PROCESSED:
@@ -183,12 +182,3 @@ class ViewFile(Resource):
                     return "El tipo debe ser 'original' o 'procesado'.", 412
         except FileNotFoundError:
             abort(404)    
-        
-def allowed_file(file):
-        file = file.split('.')
-        print(file)
-        # File extension allowed
-        print(file[-1])
-        if file[-1] in ALLOWED_EXTENSIONS_AUDIO:
-            return True
-        return False
