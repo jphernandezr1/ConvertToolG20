@@ -1,4 +1,4 @@
-from flask import request, send_from_directory, abort
+from flask import request, send_from_directory, abort, current_app
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from flask_restful import Resource
 from werkzeug.utils import secure_filename
@@ -6,14 +6,20 @@ import re
 import os
 from datetime import datetime
 from models import db, User, UserSchema, Task
-from tasks import tasks
+# from tasks import tasks
 from models.models import Status, TaskSchema
+from celery import Celery
+import zipfile
+import tarfile
+
+
 
 user_schema = UserSchema()
 task_schema = TaskSchema()
 
 
-ALLOWED_COMPRESSED = set(['ZIP', '7Z', 'TAR.GZ', 'TAR.BZ2'])
+ALLOWED_COMPRESSED = set(['ZIP', '7Z', 'GZ', 'BZ2'])
+celery_app = Celery("tasks", broker='redis://localhost:6377/0')
 
 class ViewSignUp(Resource):
 
@@ -76,7 +82,41 @@ class ViewLogIn(Resource):
             return {"mensaje": "Inicio de sesión exitoso", "token": token_de_acceso}    
         
 class ViewTask(Resource):
-    
+    @celery_app.task
+    def process_file(file_name, newFormat, newTask_id):
+        ## Compress a file in different formats
+        ## @param fileName: The name of the file to compress
+        ## @param newFormat: The format to compress the file to
+        ## @return: The name of the compressed file
+
+        ##sound = AudioSegment.from_file("./data/uploaded/"+fileName)
+        base_name = file_name.split(".")[0]
+        if newFormat == "ZIP":
+            with zipfile.ZipFile(f'./data/processed/{base_name}.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
+                zipf.write("./data/uploaded/" + file_name)
+                task = Task.query.filter(Task.id == newTask_id).first()
+                task.status = "PROCESSED"
+                db.session.commit()
+                db.session.remove()
+                return "Archivo comprimido exitosamente"
+        elif newFormat == "GZ":
+            with tarfile.open(f"./data/processed/{base_name}.tar.gz", "w:gz") as tar:
+                tar.add("./data/uploaded/" + file_name)
+                task = Task.query.filter(Task.id == newTask_id).first()
+                task.status = "PROCESSED"
+                db.session.commit()
+                db.session.remove()
+                return "Archivo comprimido exitosamente"
+        elif newFormat == "BZ2":
+            with tarfile.open(f"./data/processed/{base_name}.tar.bz2", "w:bz2") as tar:
+                tar.add("./data/uploaded/" + file_name)
+                task = Task.query.filter(Task.id == newTask_id).first()
+                task.status = "PROCESSED"
+                db.session.commit()
+                db.session.remove()
+                return "Archivo comprimido exitosamente"
+        else:
+            return "Formato no soportado"
     @jwt_required()
     def get(self, id_task=None):
         if id_task is not None:
@@ -109,6 +149,7 @@ class ViewTask(Resource):
         user_id = get_jwt_identity()
         user =  User.query.get_or_404(user_id)
         print(user.username)
+        # with current_app.app_context():
         if user:
             file = request.files['file']
             filename = secure_filename(file.filename)
@@ -118,12 +159,13 @@ class ViewTask(Resource):
                 user.tasks.append(new_task)
                 db.session.add(new_task)
                 db.session.commit()
-                file.save(os.path.join('./data/uploaded',f'{new_task.id}.{filename.split(".")[-1]}'))
-                tasks.process_file.delay(filename, newFormat, new_task.id)
+                nombre_archivo = f'{new_task.id}.{filename.split(".")[-1]}'
+                file.save(os.path.join('./data/uploaded',nombre_archivo))
+                self.process_file.delay(nombre_archivo, newFormat, new_task.id)
                 return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
 
             else:
-                return "El archivo no cumple con los formatos permitidos.", 412 
+                return "El archivo no cumple con los formatos permitidos.", 412
 
     @jwt_required()
     def delete(self, id_task):
@@ -144,6 +186,7 @@ class ViewTask(Resource):
 
     @jwt_required()
     def put(self, id_task):
+
         # Modify task format
         task = Task.query.get_or_404(id_task)
         db.session.commit()
@@ -155,18 +198,23 @@ class ViewTask(Resource):
             print(task.status)
             if task.status == Status.PROCESSED:
                 # Delete old file
-                fileNoExtension = os.path.splitext(task.fileName)[0]
+                fileNoExtension = os.path.splitext(task.id)[0]
                 os.remove(os.path.join('./data/processed', fileNoExtension + "." + task.newFormat))
                 task.status = Status.UPLOADED
-            tasks.process_file.delay(task.fileName, task.newFormat, task.id, task.user)
+            nombre_archivo = f'{task.id}.{task.fileName.split(".")[-1]}'
+            self.process_file.delay(nombre_archivo, task.newFormat, task.id)
             task.newFormat = request.json["newFormat"]
             db.session.commit()
             return {"mensaje": "Tarea modificada exitosamente", "tarea": task_schema.dump(task)}
 
+
 class ViewFile(Resource):
+    @jwt_required()
     def get(self, id):
         try:
-            task = Task.query.filter(Task.id==id)
+            task = Task.query.filter(Task.id==id).first()
+            ext_original = task.fileName.split(".")[1]
+            file_name = str(id) + "." + ext_original
             db.session.commit()
             if task is None:
                 return "El archivo no existe.", 404
@@ -174,11 +222,13 @@ class ViewFile(Resource):
                 args = request.args
                 tipo = args.get('tipo')
                 if tipo == "original":
-                    return send_from_directory('./data/uploaded', filename = task.fileName, as_attachment = True)
+                    print(file_name)
+                    return send_from_directory('./data/uploaded' , file_name, as_attachment = True)
                 if tipo == "procesado":
-                    filename= (task.fileName).split(".")[0]
-                    return send_from_directory('./data/processed', filename = filename + "." + task.newFormat, as_attachment = True)
+                    return send_from_directory('./data/processed', str(id)  + "." + task.newFormat, as_attachment = True)
                 else:
                     return "El tipo debe ser 'original' o 'procesado'.", 412
         except FileNotFoundError:
-            abort(404)    
+            abort(404)
+
+
