@@ -94,7 +94,7 @@ class ViewTask(Resource):
         if newFormat == "ZIP":
             with zipfile.ZipFile(f'./data/processed/{base_name}.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
                 zipf.write("./data/uploaded/" + file_name)
-                task = Task.query.filter(Task.id == newTask_id).first()
+                task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
                 task.status = "PROCESSED"
                 db.session.commit()
                 db.session.remove()
@@ -102,7 +102,7 @@ class ViewTask(Resource):
         elif newFormat == "GZ":
             with tarfile.open(f"./data/processed/{base_name}.tar.gz", "w:gz") as tar:
                 tar.add("./data/uploaded/" + file_name)
-                task = Task.query.filter(Task.id == newTask_id).first()
+                task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
                 task.status = "PROCESSED"
                 db.session.commit()
                 db.session.remove()
@@ -110,10 +110,8 @@ class ViewTask(Resource):
         elif newFormat == "BZ2":
             with tarfile.open(f"./data/processed/{base_name}.tar.bz2", "w:bz2") as tar:
                 tar.add("./data/uploaded/" + file_name)
-                task = Task.query.filter(Task.id == newTask_id).first()
-                task.status = "PROCESSED"
+                task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
                 db.session.commit()
-                db.session.remove()
                 return "Archivo comprimido exitosamente"
         else:
             return "Formato no soportado"
