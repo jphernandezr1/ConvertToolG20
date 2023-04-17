@@ -1,8 +1,9 @@
 # CovertToolG20
 Online Converting Tool
- [Video](https://uniandes-my.sharepoint.com/:f:/g/personal/jp_hernandezr1_uniandes_edu_co/Ej2sNNATMytKpl-zvF98aXMB3oJKqYmQ8r2q_08qLWFn1A?e=gSO2Ep)
-
 En este repositorio se encuentra la aplicación en flask de conversion
+ 
+# Video
+[Video](https://uniandes-my.sharepoint.com/:f:/g/personal/jp_hernandezr1_uniandes_edu_co/Ej2sNNATMytKpl-zvF98aXMB3oJKqYmQ8r2q_08qLWFn1A?e=gSO2Ep)
 
 # Grupo-20:
 
