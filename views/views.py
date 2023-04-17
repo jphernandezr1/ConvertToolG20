@@ -19,7 +19,7 @@ task_schema = TaskSchema()
 
 
 ALLOWED_COMPRESSED = set(['ZIP', '7Z', 'GZ', 'BZ2'])
-celery_app = Celery("tasks", broker='redis://localhost:6377/0')
+celery_app = Celery("tasks", broker='redis://localhost:6363/0')
 
 class ViewSignUp(Resource):
 
@@ -225,7 +225,12 @@ class ViewFile(Resource):
                     print(file_name)
                     return send_from_directory('./data/uploaded' , file_name, as_attachment = True)
                 if tipo == "procesado":
-                    return send_from_directory('./data/processed', str(id)  + "." + task.newFormat, as_attachment = True)
+                    if(task.newFormat=="GZ"):
+                        return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
+                    if(task.newFormat=="BZ2"):
+                        return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
+                    
+                    return send_from_directory('./data/processed', str(id)  + "." + task.newFormat.lower(), as_attachment = True)
                 else:
                     return "El tipo debe ser 'original' o 'procesado'.", 412
         except FileNotFoundError:
