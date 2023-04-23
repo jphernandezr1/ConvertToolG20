@@ -19,7 +19,7 @@ task_schema = TaskSchema()
 
 
 ALLOWED_COMPRESSED = set(['ZIP', '7Z', 'GZ', 'BZ2'])
-celery_app = Celery("tasks", broker='redis://localhost:6363/0')
+celery_app = Celery("tasks", broker='redis://34.71.116.255:6363/0')
 
 class ViewSignUp(Resource):
 
@@ -115,7 +115,7 @@ class ViewTask(Resource):
                 return "Archivo comprimido exitosamente"
         else:
             return "Formato no soportado"
-    @jwt_required()
+    #@jwt_required()
     def get(self, id_task=None):
         if id_task is not None:
             task = Task.query.filter(Task.id == id_task).first()
@@ -142,7 +142,7 @@ class ViewTask(Resource):
             tasks = task_schema.dump(tasks, many=True)
             return {"mensaje": "Tareas obtenidas exitosamente", "tareas": tasks}
 
-    @jwt_required()
+    #@jwt_required()
     def post(self):
         user_id = get_jwt_identity()
         user =  User.query.get_or_404(user_id)
@@ -165,7 +165,7 @@ class ViewTask(Resource):
             else:
                 return "El archivo no cumple con los formatos permitidos.", 412
 
-    @jwt_required()
+    #@jwt_required()
     def delete(self, id_task):
         task = Task.query.get_or_404(id_task)
         db.session.commit()
@@ -182,7 +182,7 @@ class ViewTask(Resource):
             db.session.commit()
             return {"mensaje": "Tarea eliminada exitosamente."}
 
-    @jwt_required()
+    #@jwt_required()
     def put(self, id_task):
 
         # Modify task format
@@ -207,7 +207,7 @@ class ViewTask(Resource):
 
 
 class ViewFile(Resource):
-    @jwt_required()
+    #@jwt_required()
     def get(self, id):
         try:
             task = Task.query.filter(Task.id==id).first()

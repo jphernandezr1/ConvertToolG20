@@ -36,3 +36,9 @@ puerto: 5432
 # Maquina virtual:
 
 IP EXTERNA MÁQUINA VIRTUAL 34.72.252.51
+
+# Comandos:
+
+Web server: flask run
+Worker: redis-server --port 6363 --protected-mode no
+Celery: celery -A views worker --loglevel=INFO
