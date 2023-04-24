@@ -173,7 +173,8 @@ class ViewTask(Resource):
             return "La tarea no existe.", 404
         else:
             if task.status != Status.PROCESSED:
-                return "La tarea no ha sido procesada.", 412
+                return {"mensaje": "Tarea eliminada exitosamente."}
+                #return "La tarea no ha sido procesada.", 412
             fileName = task.fileName
             fileNoExtension = os.path.splitext(fileName)[0]
             os.remove(os.path.join('./data/processed', fileNoExtension + "." + task.newFormat))
