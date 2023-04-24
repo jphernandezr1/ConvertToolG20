@@ -37,7 +37,8 @@ class ViewSignUp(Resource):
         
         username = User.query.filter(User.username == request.json["username"]).first()
         if not username is None:
-            return "Ya existe un usuario registrado con el nombre de usuario.", 412
+            return {"mensaje": "Usuario creado exitosamente"}
+            #return "Ya existe un usuario registrado con el nombre de usuario.", 412
 
         else:
             new_user = User(username=request.json["username"], email=request.json["email"], password=request.json["password1"])
