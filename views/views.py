@@ -19,7 +19,7 @@ task_schema = TaskSchema()
 
 
 ALLOWED_COMPRESSED = set(['ZIP', '7Z', 'GZ', 'BZ2'])
-celery_app = Celery("tasks", broker='redis://34.71.116.255:6363/0')
+celery_app = Celery("tasks", broker='redis://localhost:6363/0')
 
 class ViewSignUp(Resource):
 
@@ -126,7 +126,7 @@ class ViewTask(Resource):
                 task = task_schema.dump(task)
                 return {"mensaje": "Tarea obtenida exitosamente", "tarea": task}
         else:        
-            user = get_jwt_identity()
+            user = 2 #get_jwt_identity()
             tasks = Task.query.filter(Task.user == user).all()
 
             db.session.commit()
@@ -144,7 +144,7 @@ class ViewTask(Resource):
 
     #@jwt_required()
     def post(self):
-        user_id = get_jwt_identity()
+        user_id = 2 #get_jwt_identity()
         user =  User.query.get_or_404(user_id)
         print(user.username)
         # with current_app.app_context():
