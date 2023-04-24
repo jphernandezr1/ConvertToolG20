@@ -2,7 +2,7 @@
 Online Converting Tool
 En este repositorio se encuentra la aplicación en flask de conversion
  
-# Video
+# Video y otros archivos
 [Video](https://uniandes-my.sharepoint.com/:f:/g/personal/jp_hernandezr1_uniandes_edu_co/Ej2sNNATMytKpl-zvF98aXMB3oJKqYmQ8r2q_08qLWFn1A?e=gSO2Ep)
 
 # Grupo-20:
