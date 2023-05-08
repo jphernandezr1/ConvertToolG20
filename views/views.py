@@ -11,15 +11,14 @@ from models.models import Status, TaskSchema
 from celery import Celery
 import zipfile
 import tarfile
-
+from google.cloud import storage
 
 
 user_schema = UserSchema()
 task_schema = TaskSchema()
 
-
 ALLOWED_COMPRESSED = set(['ZIP', '7Z', 'GZ', 'BZ2'])
-celery_app = Celery("tasks", broker='redis://34.71.116.255:6363/0')
+celery_app = Celery("tasks", broker='redis://34.30.238.188:6363/0')
 
 class ViewSignUp(Resource):
 
@@ -83,26 +82,59 @@ class ViewLogIn(Resource):
             return {"mensaje": "Inicio de sesión exitoso", "token": token_de_acceso}    
         
 class ViewTask(Resource):
+    
+    def get_storage_client(self):
+        return storage.Client()
+
+    def get_bucket(self):
+        storage_client = self.get_storage_client()
+        return storage_client.get_bucket("cloud-converter-tool")
+
+    def upload_blob(self, source_file_name, destination_blob_name):
+        bucket = self.get_bucket()
+        blob = bucket.blob(destination_blob_name)
+
+        blob.upload_from_filename(source_file_name)
+
+        print(f"Archivo {source_file_name} cargado en el bucket como {destination_blob_name}.")
+
+    def download_blob(self, source_blob_name, destination_file_name):
+        bucket = self.get_bucket()
+        blob = bucket.blob(source_blob_name)
+
+        blob.download_to_filename(destination_file_name)
+
+        print(f"Archivo {source_blob_name} descargado del bucket a {destination_file_name}.")
+        
     @celery_app.task
     def process_file(file_name, newFormat, newTask_id):
         ## Compress a file in different formats
         ## @param fileName: The name of the file to compress
         ## @param newFormat: The format to compress the file to
         ## @return: The name of the compressed file
-
-        ##sound = AudioSegment.from_file("./data/uploaded/"+fileName)
+        print(file_name)
+        print(newFormat)
+        print(newTask_id)
         base_name = file_name.split(".")[0]
         if newFormat == "ZIP":
             with zipfile.ZipFile(f'./data/processed/{base_name}.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
                 zipf.write("./data/uploaded/" + file_name)
+                #self.upload_blob( "./data/processed/" + base_name + ".zip", "processed/" + base_name + ".zip")
                 task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
                 task.status = "PROCESSED"
+                try:
+                    os.remove("./data/processed/" + base_name + ".zip")
+                    mensaje = f"El archivo {base_name} ha sido borrado."
+                except FileNotFoundError:
+                    mensaje = f"No se encontró el archivo {base_name}."
+                print(mensaje)
                 db.session.commit()
                 db.session.remove()
                 return "Archivo comprimido exitosamente"
         elif newFormat == "GZ":
             with tarfile.open(f"./data/processed/{base_name}.tar.gz", "w:gz") as tar:
                 tar.add("./data/uploaded/" + file_name)
+                #self.upload_blob("./data/processed/" + base_name + ".tar.gz", "processed/" + base_name + ".tar.gz")
                 task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
                 task.status = "PROCESSED"
                 db.session.commit()
@@ -111,6 +143,7 @@ class ViewTask(Resource):
         elif newFormat == "BZ2":
             with tarfile.open(f"./data/processed/{base_name}.tar.bz2", "w:bz2") as tar:
                 tar.add("./data/uploaded/" + file_name)
+                #self.upload_blob("./data/processed/" + base_name + ".tar.bz2", "processed/" + base_name + ".tar.bz2")
                 task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
                 db.session.commit()
                 return "Archivo comprimido exitosamente"
@@ -145,7 +178,7 @@ class ViewTask(Resource):
 
     #@jwt_required()
     def post(self):
-        user_id = 2 #get_jwt_identity()
+        user_id = 1 #get_jwt_identity()
         user =  User.query.get_or_404(user_id)
         print(user.username)
         # with current_app.app_context():
@@ -160,6 +193,9 @@ class ViewTask(Resource):
                 db.session.commit()
                 nombre_archivo = f'{new_task.id}.{filename.split(".")[-1]}'
                 file.save(os.path.join('./data/uploaded',nombre_archivo))
+                ruta = ('/uploaded/' + nombre_archivo)
+                rutaSave = ('./data/uploaded/' + nombre_archivo)
+                self.upload_blob(rutaSave, ruta)
                 self.process_file.delay(nombre_archivo, newFormat, new_task.id)
                 return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
 

@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -5,23 +6,20 @@ from flask_restful import Api
 from models import db
 from views import ViewSignUp, ViewLogIn, ViewTask, ViewFile
 
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'dynamic-vehicle-383500-2e62dad8d711.json'
+
 app = Flask(__name__)
 
 app_context = app.app_context()
 app_context.push()
 
 with app.app_context():
-
-
     #app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:postgres@localhost:5432/postgres"
     app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:postgres@34.170.217.192:5432/cloud-converter-tool"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = 'frase-secreta'
     app.config['PROPAGATE_EXCEPTIONS'] = True
     app.config['UPLOAD_FOLDER'] = "./data/uploaded"
-
-
-
 
     db.init_app(app)
     db.create_all()
