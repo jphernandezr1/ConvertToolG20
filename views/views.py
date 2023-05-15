@@ -244,6 +244,19 @@ class ViewTask(Resource):
 
 
 class ViewFile(Resource):
+    def get_storage_client(self):
+        return storage.Client()
+
+    def get_bucket(self):
+        storage_client = self.get_storage_client()
+        return storage_client.get_bucket("cloud-converter-tool")
+
+    def download_blob(self, source_blob_name, destination_file_name):
+        bucket = self.get_bucket()
+        blob = bucket.blob(source_blob_name)
+
+        blob.download_to_filename(destination_file_name)
+
     #@jwt_required()
     def get(self, id):
         try:
@@ -258,6 +271,7 @@ class ViewFile(Resource):
                 tipo = args.get('tipo')
                 if tipo == "original":
                     print(file_name)
+                    self.download_blob("/uploaded/" + file_name, "./data/uploaded/" + file_name)
                     return send_from_directory('./data/uploaded' , file_name, as_attachment = True)
                 if tipo == "procesado":
                     if(task.newFormat=="GZ"):
