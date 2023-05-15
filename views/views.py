@@ -13,7 +13,6 @@ import zipfile
 import tarfile
 from google.cloud import storage
 
-
 user_schema = UserSchema()
 task_schema = TaskSchema()
 
