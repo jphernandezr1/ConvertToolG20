@@ -97,13 +97,16 @@ class ViewTask(Resource):
 
         print(f"Archivo {source_file_name} cargado en el bucket como {destination_blob_name}.")
 
-    def download_blob(self, source_blob_name, destination_file_name):
+    def download_blob(self, source_blob_name, file):
         bucket = self.get_bucket()
+        # Crea un objeto Blob en el bucket con el nombre del archivo
         blob = bucket.blob(source_blob_name)
-
-        blob.download_to_filename(destination_file_name)
-
-        print(f"Archivo {source_blob_name} descargado del bucket a {destination_file_name}.")
+        
+        # Define el contenido del archivo
+        blob.upload_from_file(file)
+        
+        # Retorna la URL del archivo en Cloud Storage
+        return blob.public_url
         
     @celery_app.task
     def process_file(file_name, newFormat, newTask_id):
@@ -191,10 +194,8 @@ class ViewTask(Resource):
                 db.session.add(new_task)
                 db.session.commit()
                 nombre_archivo = f'{new_task.id}.{filename.split(".")[-1]}'
-                file.save(os.path.join('./data/uploaded',nombre_archivo))
                 ruta = ('/uploaded/' + nombre_archivo)
-                rutaSave = ('./data/uploaded/' + nombre_archivo)
-                self.upload_blob(rutaSave, ruta)
+                self.upload_blob(ruta, file)
                 self.process_file.delay(nombre_archivo, newFormat, new_task.id)
                 return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
 
@@ -251,11 +252,18 @@ class ViewFile(Resource):
         storage_client = self.get_storage_client()
         return storage_client.get_bucket("cloud-converter-tool")
 
-    def download_blob(self, source_blob_name, destination_file_name):
+    def download_blob(self, source_blob_name):        
         bucket = self.get_bucket()
+        
+        # Obtiene un objeto Blob del bucket con el nombre del archivo
         blob = bucket.blob(source_blob_name)
-
-        blob.download_to_filename(destination_file_name)
+        
+        # Descarga el contenido del archivo como una cadena de texto
+        contenido_archivo = blob.download_as_bytes()
+        
+        # Retorna el contenido del archivo
+        return contenido_archivo
+        
 
     #@jwt_required()
     def get(self, id):
@@ -270,9 +278,7 @@ class ViewFile(Resource):
                 args = request.args
                 tipo = args.get('tipo')
                 if tipo == "original":
-                    print(file_name)
-                    self.download_blob("/uploaded/" + file_name, "./data/uploaded/" + file_name)
-                    return send_from_directory('./data/uploaded' , file_name, as_attachment = True)
+                    return self.download_blob("/uploaded/" + file_name)
                 if tipo == "procesado":
                     if(task.newFormat=="GZ"):
                         return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
