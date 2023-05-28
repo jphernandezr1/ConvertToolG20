@@ -19,7 +19,7 @@ user_schema = UserSchema()
 task_schema = TaskSchema()
 
 ALLOWED_COMPRESSED = set(['ZIP', '7Z', 'GZ', 'BZ2'])
-celery_app = Celery("tasks", broker='redis://10.213.7.115:6379/0')
+celery_app = Celery("tasks", broker='redis://34.173.82.254:6363/0')
 
 class ViewSignUp(Resource):
 
