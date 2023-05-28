@@ -1,3 +1,4 @@
+import io
 from flask import request, send_file, send_from_directory, abort, current_app
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from flask_restful import Resource
@@ -104,13 +105,26 @@ class ViewTask(Resource):
         blob = bucket.blob(source_blob_name)
         
         # Define el contenido del archivo
-        blob.upload_from_file(file)
+        blob.upload_from_file(io.BytesIO(file))
         
         # Retorna la URL del archivo en Cloud Storage
         return blob.public_url
         
     @celery_app.task
     def process_file(file_name, newFormat, newTask_id):
+        def get_storage_client():
+            return storage.Client()
+        def get_bucket():
+            storage_client = get_storage_client()
+            return storage_client.get_bucket("cloud-converter-tool")
+        def upload_blob( source_blob_name, file):
+            bucket = get_bucket()
+            # Crea un objeto Blob en el bucket con el nombre del archivo
+            blob = bucket.blob(source_blob_name)
+            # Define el contenido del archivo
+            blob.upload_from_file(io.BytesIO(file))
+            # Retorna la URL del archivo en Cloud Storage
+            return blob.public_url
         ## Compress a file in different formats
         ## @param fileName: The name of the file to compress
         ## @param newFormat: The format to compress the file to
@@ -120,36 +134,29 @@ class ViewTask(Resource):
         print(newTask_id)
         base_name = file_name.split(".")[0]
         if newFormat == "ZIP":
-            with zipfile.ZipFile(f'./data/processed/{base_name}.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
-                zipf.write("./data/uploaded/" + file_name)
-                #self.upload_blob( "./data/processed/" + base_name + ".zip", "processed/" + base_name + ".zip")
-                task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
-                task.status = "PROCESSED"
-                try:
-                    os.remove("./data/processed/" + base_name + ".zip")
-                    mensaje = f"El archivo {base_name} ha sido borrado."
-                except FileNotFoundError:
-                    mensaje = f"No se encontró el archivo {base_name}."
-                print(mensaje)
+            with zipfile.ZipFile(io.BytesIO(), 'w', zipfile.ZIP_DEFLATED) as zipf:
+                zipf.writestr(file_name,arcname=base_name)
+                upload_blob( "/processed/" + base_name + ".zip", zipf.read())
+                Task.query.filter(Task.id == newTask_id).update(dict(status="PROCESSED"))
                 db.session.commit()
-                db.session.remove()
                 return "Archivo comprimido exitosamente"
+
         elif newFormat == "GZ":
-            with tarfile.open(f"./data/processed/{base_name}.tar.gz", "w:gz") as tar:
-                tar.add("./data/uploaded/" + file_name)
-                #self.upload_blob("./data/processed/" + base_name + ".tar.gz", "processed/" + base_name + ".tar.gz")
-                task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
-                task.status = "PROCESSED"
+            with tarfile.open(fileobj=io.BytesIO(), mode="w:gz") as tar:
+                tar.add(file_name, arcname=base_name)
+                upload_blob( "/processed/" + base_name + ".tar.gz", tar.tobytes())
+                Task.query.filter(Task.id == newTask_id).update(dict(status="PROCESSED"))
                 db.session.commit()
-                db.session.remove()
                 return "Archivo comprimido exitosamente"
+
         elif newFormat == "BZ2":
-            with tarfile.open(f"./data/processed/{base_name}.tar.bz2", "w:bz2") as tar:
-                tar.add("./data/uploaded/" + file_name)
-                #self.upload_blob("./data/processed/" + base_name + ".tar.bz2", "processed/" + base_name + ".tar.bz2")
-                task = Task.query.filter(Task.id == newTask_id).update(dict(status = "PROCESSED"))
+            with tarfile.open(fileobj=io.BytesIO(), mode="w:bz2") as tar:
+                tar.add(file_name, arcname=base_name)
+                upload_blob( "/processed/" + base_name + ".tar.bz2",tar.tobytes())
+                Task.query.filter(Task.id == newTask_id).update(dict(status="PROCESSED"))
                 db.session.commit()
                 return "Archivo comprimido exitosamente"
+
         else:
             return "Formato no soportado"
     #@jwt_required()
@@ -289,11 +296,33 @@ class ViewFile(Resource):
                         return send_file(temp_file_path, as_attachment=True, download_name=file_name)
                 if tipo == "procesado":
                     if(task.newFormat=="GZ"):
-                        return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
+                        url= self.download_blob('/processed/'+str(id) + ".tar." + task.newFormat.lower())
+                        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                            temp_file.write(url)
+                            temp_file.flush()
+                            # Obtén la ruta del archivo temporal
+                            temp_file_path = temp_file.name
+
+                            # Envía el archivo temporal como una respuesta adjunta
+                            return send_file(temp_file_path, as_attachment=True, download_name=file_name)
                     if(task.newFormat=="BZ2"):
-                        return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
-                    
-                    return send_from_directory('./data/processed', str(id)  + "." + task.newFormat.lower(), as_attachment = True)
+                        url= self.download_blob('/processed/'+str(id) + ".tar." + task.newFormat.lower())
+                        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                            temp_file.write(url)
+                            temp_file.flush()
+                            # Obtén la ruta del archivo temporal
+                            temp_file_path = temp_file.name
+                            # Envía el archivo temporal como una respuesta adjunta
+                            return send_file(temp_file_path, as_attachment=True, download_name=file_name)
+                    else:
+                        url= self.download_blob('/processed/'+str(id) + "." + task.newFormat.lower())
+                        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                            temp_file.write(url)
+                            temp_file.flush()
+                            # Obtén la ruta del archivo temporal
+                            temp_file_path = temp_file.name
+                            # Envía el archivo temporal como una respuesta adjunta
+                            return send_file(temp_file_path, as_attachment=True, download_name=file_name)
                 else:
                     return "El tipo debe ser 'original' o 'procesado'.", 412
         except FileNotFoundError:
