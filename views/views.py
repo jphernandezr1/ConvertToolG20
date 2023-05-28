@@ -180,7 +180,7 @@ class ViewTask(Resource):
 
     #@jwt_required()
     def post(self):
-        user_id = 10
+        user_id = 1
         user =  User.query.get_or_404(user_id)
         print(user.username)
         # with current_app.app_context():
