@@ -194,7 +194,7 @@ class ViewTask(Resource):
                 db.session.add(new_task)
                 db.session.commit()
                 nombre_archivo = f'{new_task.id}.{filename.split(".")[-1]}'
-                ruta = ('/uploaded/' + nombre_archivo)
+                ruta = ('/uploaded/' + str(nombre_archivo))
                 self.upload_blob(ruta, file)
                 self.process_file.delay(nombre_archivo, newFormat, new_task.id)
                 return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
@@ -259,7 +259,7 @@ class ViewFile(Resource):
         blob = bucket.blob(source_blob_name)
         
         # Descarga el contenido del archivo como una cadena de texto
-        contenido_archivo = blob.generate_signed_url(expiration=300)
+        contenido_archivo = blob.download_as_bytes()
         
         # Retorna el contenido del archivo
         return contenido_archivo
