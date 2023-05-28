@@ -1,4 +1,10 @@
 runtime: python39
+entrypoint: gunicorn -b :8080 main:app
+
 
 env_variables:
   REDIS_URL: "redis://34.173.82.254:6363/0"
+
+libraries:
+- name: google-cloud-storage
+  version: latest
