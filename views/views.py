@@ -12,6 +12,7 @@ from celery import Celery
 import zipfile
 import tarfile
 from google.cloud import storage
+import tempfile
 
 user_schema = UserSchema()
 task_schema = TaskSchema()
@@ -279,7 +280,14 @@ class ViewFile(Resource):
                 tipo = args.get('tipo')
                 if tipo == "original":
                     url= self.download_blob("/uploaded/" + file_name)
-                    return send_file(url, as_attachment=True, download_name=file_name)
+                    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                        temp_file.write(url)
+                        temp_file.flush()
+                        # Obtén la ruta del archivo temporal
+                        temp_file_path = temp_file.name
+
+                        # Envía el archivo temporal como una respuesta adjunta
+                        return send_file(temp_file_path, as_attachment=True, download_name=file_name)
                 if tipo == "procesado":
                     if(task.newFormat=="GZ"):
                         return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
