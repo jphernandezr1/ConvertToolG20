@@ -21,9 +21,8 @@ with app.app_context():
     app.config['JWT_SECRET_KEY'] = 'frase-secreta'
     app.config['PROPAGATE_EXCEPTIONS'] = True
     app.config['UPLOAD_FOLDER'] = "./data/uploaded"
-    app.conf.task_routes = {
-    'app.tasks.*': {'queue': 'celery'}
-}
+    app.config['task_routes'] = {'app.tasks.*': {'queue': 'celery'}}
+
 
     db.init_app(app)
     db.create_all()
