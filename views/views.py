@@ -1,4 +1,4 @@
-from flask import request, send_from_directory, abort, current_app
+from flask import request, send_file, send_from_directory, abort, current_app
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from flask_restful import Resource
 from werkzeug.utils import secure_filename
@@ -278,7 +278,7 @@ class ViewFile(Resource):
                 args = request.args
                 tipo = args.get('tipo')
                 if tipo == "original":
-                    return self.download_blob("/uploaded/" + file_name)
+                    return send_file(self.download_blob("/uploaded/" + file_name), as_attachment=True)
                 if tipo == "procesado":
                     if(task.newFormat=="GZ"):
                         return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
