@@ -186,6 +186,7 @@ class ViewTask(Resource):
 
     #@jwt_required()
     def post(self):
+        print("entro")
         user_id = 1
         user =  User.query.get_or_404(user_id)
         # with current_app.app_context():
