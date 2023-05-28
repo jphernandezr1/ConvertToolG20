@@ -183,7 +183,6 @@ class ViewTask(Resource):
     def post(self):
         user_id = 1
         user =  User.query.get_or_404(user_id)
-        print(user.username)
         # with current_app.app_context():
         if user:
             file = request.files['file']
