@@ -279,7 +279,6 @@ class ViewFile(Resource):
                 tipo = args.get('tipo')
                 if tipo == "original":
                     url= self.download_blob("/uploaded/" + file_name)
-                    print(url)
                     return send_file(url, as_attachment=True, download_name=file_name)
                 if tipo == "procesado":
                     if(task.newFormat=="GZ"):
