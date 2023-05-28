@@ -259,7 +259,7 @@ class ViewFile(Resource):
         blob = bucket.blob(source_blob_name)
         
         # Descarga el contenido del archivo como una cadena de texto
-        contenido_archivo = blob.download_as_bytes()
+        contenido_archivo = blob.generate_signed_url(expiration=300)
         
         # Retorna el contenido del archivo
         return contenido_archivo
@@ -278,7 +278,7 @@ class ViewFile(Resource):
                 args = request.args
                 tipo = args.get('tipo')
                 if tipo == "original":
-                    return send_file(self.download_blob("/uploaded/" + file_name), as_attachment=True)
+                    return send_file(self.download_blob("/uploaded/" + file_name), as_attachment=True, download_name=file_name)
                 if tipo == "procesado":
                     if(task.newFormat=="GZ"):
                         return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
