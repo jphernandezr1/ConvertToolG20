@@ -278,7 +278,9 @@ class ViewFile(Resource):
                 args = request.args
                 tipo = args.get('tipo')
                 if tipo == "original":
-                    return send_file(self.download_blob("/uploaded/" + file_name), as_attachment=True, download_name=file_name)
+                    url= self.download_blob("/uploaded/" + file_name)
+                    print(url)
+                    return send_file(url, as_attachment=True, download_name=file_name)
                 if tipo == "procesado":
                     if(task.newFormat=="GZ"):
                         return send_from_directory('./data/processed', str(id)  + ".tar." + task.newFormat.lower(), as_attachment = True)
