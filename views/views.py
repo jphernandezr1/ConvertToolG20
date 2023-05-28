@@ -186,12 +186,13 @@ class ViewTask(Resource):
 
     #@jwt_required()
     def post(self):
-        print("entro")
         user_id = 1
         user =  User.query.get_or_404(user_id)
         # with current_app.app_context():
         if user:
+            print("entro")
             file = request.files['file']
+            print("file obtained")
             filename = secure_filename(file.filename)
             newFormat = request.values["newFormat"]
             if newFormat in ALLOWED_COMPRESSED:
@@ -199,10 +200,13 @@ class ViewTask(Resource):
                 user.tasks.append(new_task)
                 db.session.add(new_task)
                 db.session.commit()
+                print("creo tarea")
                 nombre_archivo = f'{new_task.id}.{filename.split(".")[-1]}'
                 ruta = ('/uploaded/' + str(nombre_archivo))
                 self.upload_blob(ruta, file)
+                print("subio tarea")
                 self.process_file.delay(nombre_archivo, newFormat, new_task.id)
+                print("proceso")
                 return {"mensaje":f"Tarea creada exitosamente. id: {new_task.id} por favor recordar este id para la descarga"}
 
             else:
