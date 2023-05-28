@@ -1,0 +1,4 @@
+runtime: python39
+
+env_variables:
+  REDIS_URL: "redis://34.173.82.254:6363/0"

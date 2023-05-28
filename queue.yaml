@@ -1,0 +1,5 @@
+queue:
+- name: celery
+  rate: 10/s
+  bucket_size: 100
+  max_concurrent_requests: 10
