@@ -105,7 +105,7 @@ class ViewTask(Resource):
         blob = bucket.blob(source_blob_name)
         
         # Define el contenido del archivo
-        blob.upload_from_file(io.BytesIO(file))
+        blob.upload_from_file(file)
         
         # Retorna la URL del archivo en Cloud Storage
         return blob.public_url
@@ -123,8 +123,6 @@ class ViewTask(Resource):
             blob = bucket.blob(source_blob_name)
             # Define el contenido del archivo
             blob.upload_from_file(io.BytesIO(file))
-            # Retorna la URL del archivo en Cloud Storage
-            return blob.public_url
         ## Compress a file in different formats
         ## @param fileName: The name of the file to compress
         ## @param newFormat: The format to compress the file to
