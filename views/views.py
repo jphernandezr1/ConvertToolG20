@@ -190,7 +190,8 @@ class ViewTask(Resource):
         user =  User.query.get_or_404(user_id)
         # with current_app.app_context():
         if user:
-            print("entro")
+            print("entro a")
+            print (request)
             file = request.files['file']
             print("file obtained")
             filename = secure_filename(file.filename)
